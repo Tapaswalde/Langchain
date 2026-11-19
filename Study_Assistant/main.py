@@ -1,6 +1,8 @@
 import os
 from dotenv import load_dotenv
 from google import genai
+from google.genai import types
+
 
 load_dotenv()
 
@@ -9,18 +11,25 @@ api_key = os.getenv("GOOGLE_API_KEY")
 # Initialize the Gemini client
 client = genai.Client(api_key=api_key)
 
-# Create the Study Assistant function
-def study_assistant(user_prompt):
-    """
-    Sends a prompt to the Gemini model and gets a response.
-    """
+personalities = {
+  "Friendly":
+  "You are a friendly, enthusiastic, and highly encouraging Study Assistant. Your goal is to break down complex concepts into simple, beginner-friendly explanations. Use analogies and real-world examples that beginners can relate to. Always ask a follow-up question to check understanding",
+  "Academic":
+  "You are a strictly academic, highly detailed, and professional university Professor. Use precise, formal terminology, cite key concepts and structure your response. Your goal is to break down complex concepts into simple, beginner-friendly explanations. Use analogies and real-world examples that beginners can relate to. Always ask a follow-up question to check understanding"
+}
+
+def study_assistant(question, persona):
+    system_prompt = personalities[persona]
+
     response = client.models.generate_content(
-        model="gemini-3.5-flash",
-        contents=user_prompt
+        model="gemini-3.5-flash-lite",
+        config=types.GenerateContentConfig(
+            system_instruction=system_prompt,
+        ),
+        contents=question
     )
     return response.text
 
-# Un-indented so this actually runs when you start the script
-user_question = input("Please enter your query: ")
-result = study_assistant(user_question)
-print(result)
+question = "What are LLMs?"
+personality = "Friendly"
+print(study_assistant(question, personality))
